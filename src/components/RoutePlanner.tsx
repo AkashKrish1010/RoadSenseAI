@@ -70,9 +70,12 @@ export default function RoutePlanner() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
+  const [activeField, setActiveField] = useState<"source" | "destination" | null>(null);
+
   const searchAbortRef = useRef<AbortController | null>(null);
   const detailsAbortRef = useRef<AbortController | null>(null);
   const suppressNextSearchRef = useRef(false);
+  const plannerRef = useRef<HTMLDivElement>(null);
 
   // Sync preference with global defaults when settings update
   useEffect(() => {
@@ -84,6 +87,18 @@ export default function RoutePlanner() {
     refreshHistory();
   }, []);
 
+  // Click outside detector to close suggestion list
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (plannerRef.current && !plannerRef.current.contains(event.target as Node)) {
+        setActiveField(null);
+        setSuggestions([]);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   async function refreshHistory() {
     const recents = await getRecentSearches();
     const favs = await getFavoriteLocations();
@@ -91,14 +106,19 @@ export default function RoutePlanner() {
     setFavoriteLocations(favs);
   }
 
-  // Autocomplete destination logic
+  // Autocomplete logic for the active input field
   useEffect(() => {
-    const normalizedQuery = destination.trim().replace(/\s+/g, " ");
+    if (!activeField) return;
+
+    const query = activeField === "source" ? source : destination;
+    const coordinate = activeField === "source" ? sourceCoordinate : destinationCoordinate;
+    const normalizedQuery = query.trim().replace(/\s+/g, " ");
+
     if (suppressNextSearchRef.current) {
       suppressNextSearchRef.current = false;
       return;
     }
-    if (destinationCoordinate || normalizedQuery.length < 2) {
+    if (coordinate || normalizedQuery.length < 2) {
       searchAbortRef.current?.abort();
       setSuggestions([]);
       setSearchError(null);
@@ -106,11 +126,11 @@ export default function RoutePlanner() {
     }
 
     const timeout = setTimeout(() => {
-      searchDestination(normalizedQuery);
+      searchLocation(normalizedQuery, activeField === "source");
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, [destination, destinationCoordinate]);
+  }, [source, destination, activeField, sourceCoordinate, destinationCoordinate]);
 
   async function resolveLocationBias(): Promise<Coordinate> {
     if (currentLocation) return currentLocation;
@@ -127,14 +147,17 @@ export default function RoutePlanner() {
     }
   }
 
-  async function searchDestination(query: string) {
+  async function searchLocation(query: string, isSource: boolean) {
     searchAbortRef.current?.abort();
     const controller = new AbortController();
     searchAbortRef.current = controller;
     setSearchLoading(true);
     setSearchError(null);
-    setActiveCategoryId(null);
-    setNearbyResults([]);
+    
+    if (!isSource) {
+      setActiveCategoryId(null);
+      setNearbyResults([]);
+    }
 
     try {
       const locationBias = await resolveLocationBias();
@@ -187,7 +210,15 @@ export default function RoutePlanner() {
 
     try {
       const details = await getPlaceDetails(suggestion.placeId, controller.signal);
-      await planSelectedDestination(details);
+      if (activeField === "source") {
+        suppressNextSearchRef.current = true;
+        setSource(details.name);
+        setSourceCoordinate(details.coordinate);
+        setSuggestions([]);
+        setSearchError(null);
+      } else {
+        await planSelectedDestination(details);
+      }
     } catch (err) {
       if (controller.signal.aborted) return;
       setSearchError(err instanceof Error ? err.message : "Failed to load location details.");
@@ -264,13 +295,13 @@ export default function RoutePlanner() {
   };
 
   return (
-    <div className="glass-panel" style={{ height: "100%", display: "flex", flexDirection: "column", gap: "18px" }}>
+    <div ref={plannerRef} className="glass-panel" style={{ height: "100%", display: "flex", flexDirection: "column", gap: "18px" }}>
       <h2 style={{ fontSize: "18px", fontWeight: 800, fontFamily: "var(--font-display)" }}>
         Route Planner
       </h2>
 
       {/* Source Location Field */}
-      <div>
+      <div style={{ position: "relative" }}>
         <label style={{ fontSize: "11px", textTransform: "uppercase", fontWeight: 800, color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>
           Starting point
         </label>
@@ -281,24 +312,77 @@ export default function RoutePlanner() {
             className="cyber-input"
             value={source}
             placeholder="Current Location"
+            onFocus={() => setActiveField("source")}
             onChange={(e) => {
               setSource(e.target.value);
               setSourceCoordinate(null);
+              setActiveField("source");
             }}
           />
           {source && (
             <button 
-              onClick={() => { setSource(""); setSourceCoordinate(null); }}
+              onClick={() => { setSource(""); setSourceCoordinate(null); setSuggestions([]); }}
               style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center" }}
             >
               <X size={16} />
             </button>
           )}
         </div>
+
+        {/* Starting Point Autocomplete */}
+        {activeField === "source" && (suggestions.length > 0 || searchError) && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            zIndex: 50,
+            marginTop: "2px",
+            maxHeight: "220px",
+            overflowY: "auto",
+            background: "rgba(5, 12, 28, 0.98)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid var(--glass-border)",
+            borderRadius: "var(--border-radius-md)",
+            padding: "8px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)"
+          }}>
+            {searchError && (
+              <div style={{ color: "var(--danger-red)", padding: "10px", fontSize: "13px", fontWeight: 600 }}>
+                {searchError}
+              </div>
+            )}
+            
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.id}
+                onClick={() => selectSuggestion(suggestion)}
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#FFFFFF",
+                  cursor: "pointer",
+                  borderRadius: "6px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "2px"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                <span style={{ fontSize: "14px", fontWeight: 700 }}>{suggestion.primaryText}</span>
+                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{suggestion.secondaryText}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Destination Location Field */}
-      <div>
+      <div style={{ position: "relative" }}>
         <label style={{ fontSize: "11px", textTransform: "uppercase", fontWeight: 800, color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>
           Destination
         </label>
@@ -309,10 +393,12 @@ export default function RoutePlanner() {
             className="cyber-input"
             value={destination}
             placeholder="Search destination..."
+            onFocus={() => setActiveField("destination")}
             onChange={(e) => {
               setDestination(e.target.value);
               setDestinationCoordinate(null);
               setFormError(null);
+              setActiveField("destination");
             }}
           />
           {(destination || searchLoading || detailsLoading) && (
@@ -351,77 +437,85 @@ export default function RoutePlanner() {
             </button>
           ))}
         </div>
+
+        {/* Destination Autocomplete */}
+        {activeField === "destination" && (suggestions.length > 0 || nearbyResults.length > 0 || searchError) && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            zIndex: 50,
+            marginTop: "6px",
+            maxHeight: "220px",
+            overflowY: "auto",
+            background: "rgba(5, 12, 28, 0.98)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid var(--glass-border)",
+            borderRadius: "var(--border-radius-md)",
+            padding: "8px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)"
+          }}>
+            {searchError && (
+              <div style={{ color: "var(--danger-red)", padding: "10px", fontSize: "13px", fontWeight: 600 }}>
+                {searchError}
+              </div>
+            )}
+            
+            {/* Geocoding suggestions */}
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.id}
+                onClick={() => selectSuggestion(suggestion)}
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#FFFFFF",
+                  cursor: "pointer",
+                  borderRadius: "6px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "2px"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                <span style={{ fontSize: "14px", fontWeight: 700 }}>{suggestion.primaryText}</span>
+                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{suggestion.secondaryText}</span>
+              </button>
+            ))}
+
+            {/* Nearby results */}
+            {nearbyResults.map((result) => (
+              <button
+                key={result.id}
+                onClick={() => planSelectedDestination(result)}
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#FFFFFF",
+                  cursor: "pointer",
+                  borderRadius: "6px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "2px"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                <span style={{ fontSize: "14px", fontWeight: 700 }}>{result.label}</span>
+                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{result.address}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Autocomplete & Geocoded suggestions results */}
-      {(suggestions.length > 0 || nearbyResults.length > 0 || searchError) && (
-        <div style={{
-          maxHeight: "220px",
-          overflowY: "auto",
-          background: "rgba(5, 12, 28, 0.95)",
-          border: "1px solid var(--glass-border)",
-          borderRadius: "var(--border-radius-md)",
-          padding: "8px"
-        }}>
-          {searchError && (
-            <div style={{ color: "var(--danger-red)", padding: "10px", fontSize: "13px", fontWeight: 600 }}>
-              {searchError}
-            </div>
-          )}
-          
-          {/* Geocoding suggestions */}
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.id}
-              onClick={() => selectSuggestion(suggestion)}
-              style={{
-                width: "100%",
-                background: "transparent",
-                border: "none",
-                textAlign: "left",
-                padding: "8px 12px",
-                color: "#FFFFFF",
-                cursor: "pointer",
-                borderRadius: "6px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-            >
-              <span style={{ fontSize: "14px", fontWeight: 700 }}>{suggestion.primaryText}</span>
-              <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{suggestion.secondaryText}</span>
-            </button>
-          ))}
-
-          {/* Nearby results */}
-          {nearbyResults.map((result) => (
-            <button
-              key={result.id}
-              onClick={() => planSelectedDestination(result)}
-              style={{
-                width: "100%",
-                background: "transparent",
-                border: "none",
-                textAlign: "left",
-                padding: "8px 12px",
-                color: "#FFFFFF",
-                cursor: "pointer",
-                borderRadius: "6px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-            >
-              <span style={{ fontSize: "14px", fontWeight: 700 }}>{result.label}</span>
-              <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{result.address}</span>
-            </button>
-          ))}
-        </div>
-      )}
 
       {locationNotice && (
         <p style={{ color: "var(--warn-yellow)", fontSize: "11px", fontWeight: 700 }}>

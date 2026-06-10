@@ -166,10 +166,10 @@ function Footer() {
       <div>
         <span>© 2026 RoadSense Trip Intelligence. Replicated client MVP.</span>
       </div>
-      <div style={{ display: "flex", gap: "18px" }}>
-        <a href="#/" style={{ color: "var(--text-secondary)", textDecoration: "none", transition: "var(--transition-smooth)" }} className="nav-link-item">Privacy Policy</a>
-        <a href="#/console" style={{ color: "var(--text-secondary)", textDecoration: "none", transition: "var(--transition-smooth)" }} className="nav-link-item">Console</a>
-        <span style={{ color: "var(--text-muted)" }}>External API usage limits apply</span>
+      <div style={{ display: "flex", gap: "18px", alignItems: "center" }}>
+        <a href="#/" style={{ color: "var(--text-secondary)", textDecoration: "none", transition: "var(--transition-smooth)", fontSize: "13px" }} className="nav-link-item">Privacy Policy</a>
+        <a href="#/console" style={{ color: "var(--text-secondary)", textDecoration: "none", transition: "var(--transition-smooth)", fontSize: "13px" }} className="nav-link-item">Console</a>
+        <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>External API usage limits apply</span>
       </div>
     </footer>
   );
@@ -222,7 +222,6 @@ function CounterItem({
     </div>
   );
 }
-
 // Landing Page (Home View)
 function HomeView() {
   const stats = useStats();
@@ -231,6 +230,122 @@ function HomeView() {
   const flowRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const [animateCounters, setAnimateCounters] = useState(false);
+
+  // REDESIGNED FEATURE SECTION LOGIC
+  const [activeFeature, setActiveFeature] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+
+  useEffect(() => {
+    if (!autoPlay) return;
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % 4);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [autoPlay]);
+
+  const featuresData = [
+    {
+      title: "Multi-Factor Safety Scoring",
+      description: "Evaluates route profiles on safety metrics. Compares and ranks directions so you can choose paths with lower hazard risk and clearer flows.",
+      icon: <ShieldCheck size={18} />,
+      color: "var(--safest-green)",
+      glowColor: "rgba(34, 197, 94, 0.25)",
+      accentBg: "rgba(34, 197, 94, 0.08)",
+      borderColor: "rgba(34, 197, 94, 0.3)",
+      tag: "SAFETY CORE v2.1",
+      logs: [
+        "[SYSTEM] Initializing Multi-Factor Safety Engine...",
+        "[GEO] Fetching alternate coordinate pathways [4 sets]...",
+        "[CALC] Computing safe coefficients: topography, curve severity...",
+        "[WARN] High sharp-curve density detected on Highway 4A.",
+        "[INFO] SafeScore: Route A: 96/100 | Route B: 84/100 | Route C: 72/100.",
+        "[RECOMMEND] Optimal safest route selected."
+      ],
+      details: {
+        score: "96 / 100 SAFETY INDEX",
+        metrics: [
+          { name: "Curve Severity Risk", val: 15 },
+          { name: "Congestion Index", val: 24 },
+          { name: "Slippage Danger", val: 8 }
+        ]
+      }
+    },
+    {
+      title: "WebGL Map Preview",
+      description: "Visualizes route geometry using hardware-accelerated MapLibre GL. Overlay multiple directions, inspect zoom limits, and trigger path switches.",
+      icon: <Map size={18} />,
+      color: "var(--primary-cyan)",
+      glowColor: "var(--primary-glow)",
+      accentBg: "rgba(0, 229, 255, 0.08)",
+      borderColor: "rgba(0, 229, 255, 0.3)",
+      tag: "WEBGL GL-RENDERER",
+      logs: [
+        "[MAPLIBRE] Hardware WebGL context initialized successfully.",
+        "[VECTORS] Fetching administrative boundaries and road layers...",
+        "[PATH] Plotting GeoJSON route vectors: 142 latitude/longitude vertices...",
+        "[ZOOM] Bounds centered: min(77.58, 12.94), max(77.65, 12.99)...",
+        "[RENDER] Frame draw complete in 12.4ms (60 FPS active)."
+      ],
+      details: {
+        score: "60 FPS ACTIVE",
+        metrics: [
+          { name: "Tile Draw Call Latency", val: 8 },
+          { name: "GPU Memory Utilized", val: 32 },
+          { name: "Vector Vertices Plotted", val: 78 }
+        ]
+      }
+    },
+    {
+      title: "Weather Intelligence",
+      description: "Integrates forecasts from Open-Meteo. Computes wind speeds, visibility scales, and rain probability thresholds to score real-time road conditions.",
+      icon: <CloudRain size={18} />,
+      color: "var(--eco-purple)",
+      glowColor: "var(--eco-glow)",
+      accentBg: "rgba(168, 85, 247, 0.08)",
+      borderColor: "rgba(168, 85, 247, 0.3)",
+      tag: "METEOROLOGY GRID",
+      logs: [
+        "[WEATHER] Syncing with Open-Meteo regional grid data...",
+        "[COORD] Mapping active weather cells for grid: lat 12.97 / lon 77.59...",
+        "[METEO] Temperature: 28.5°C | Wind: 14.8 km/h at 230° SW...",
+        "[METEO] Precipitation probability: 10% | Humidity: 58%...",
+        "[GRIP] Calibrating road grip coefficient: 0.94 (Optimal dry surface)."
+      ],
+      details: {
+        score: "DRY ROAD CONDITIONS",
+        metrics: [
+          { name: "Precipitation Risk", val: 10 },
+          { name: "Crosswind Influence", val: 18 },
+          { name: "Surface Grip Index", val: 94 }
+        ]
+      }
+    },
+    {
+      title: "Generative AI Copilot",
+      description: "Chat directly with our Gemini-powered co-pilot. Solicits instant guidelines on fuel mileage, optimal departure schedules, and local landmark nodes.",
+      icon: <Bot size={18} />,
+      color: "var(--warn-yellow)",
+      glowColor: "rgba(250, 204, 21, 0.2)",
+      accentBg: "rgba(250, 204, 21, 0.08)",
+      borderColor: "rgba(250, 204, 21, 0.3)",
+      tag: "GEMINI FLASH INTERFACE",
+      logs: [
+        "[CHAT] Gemini Session established: ID cb3-f421a...",
+        "[PROMPT] User requested optimal departure suggestion...",
+        "[AI] Analyzing weather degradation and current route speed drops...",
+        "[AI] Guidance: Recommend departure at 16:15 before rain likelihood increases.",
+        "[AI] Bypass recommended near Highway 3 intersection: Saves 6 mins."
+      ],
+      details: {
+        score: "AI COPILOT ONLINE",
+        metrics: [
+          { name: "Response Latency", val: 24 },
+          { name: "Token Compression Ratio", val: 82 },
+          { name: "Context Accuracy Score", val: 98 }
+        ]
+      }
+    }
+  ];
 
   // Check if we use actual trip context stats or default mock scan metrics
   const isActualActive = stats.trips > 0;
@@ -318,7 +433,7 @@ function HomeView() {
       if (entry.isIntersecting) {
         gsap.fromTo(".feature-card-anim",
           { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.7, stagger: 0.15, ease: "power2.out" }
+          { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }
         );
         observer.disconnect();
       }
@@ -337,7 +452,7 @@ function HomeView() {
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "50px" }} className="fade-in">
+    <div style={{ display: "flex", flexDirection: "column", gap: "95px" }} className="fade-in">
       {/* Hero Section */}
       <section ref={heroRef} className="hero-landing">
         <div className="hero-tag hero-anim">
@@ -406,7 +521,7 @@ function HomeView() {
           
           <div className="glass-panel flow-card-anim" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "26px", opacity: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(6, 182, 212, 0.08)", border: "1px solid rgba(6, 182, 212, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(6, 182, 212, 0.08)", border: "1px solid rgba(6, 182, 212, 0.15)", display: "flex", alignItems: "center", justify_content: "center" }}>
                 <Layers size={16} color="var(--primary-cyan)" style={{ margin: "auto" }} />
               </div>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--primary-cyan)" }}>STAGE 01</span>
@@ -419,7 +534,7 @@ function HomeView() {
 
           <div className="glass-panel flow-card-anim" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "26px", opacity: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)", display: "flex", alignItems: "center", justify_content: "center" }}>
                 <Activity size={16} color="var(--safest-green)" style={{ margin: "auto" }} />
               </div>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--safest-green)" }}>STAGE 02</span>
@@ -432,7 +547,7 @@ function HomeView() {
 
           <div className="glass-panel flow-card-anim" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "26px", opacity: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.15)", display: "flex", alignItems: "center", justify_content: "center" }}>
                 <Bot size={16} color="var(--warn-yellow)" style={{ margin: "auto" }} />
               </div>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--warn-yellow)" }}>STAGE 03</span>
@@ -446,53 +561,268 @@ function HomeView() {
         </div>
       </section>
 
-      {/* Feature Showcase Cards Grid */}
-      <section ref={featuresRef}>
-        <h2 style={{ textAlign: "center", fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 800, marginBottom: "24px" }}>
+      {/* Feature Showcase Redesign */}
+      <section ref={featuresRef} className="intel-section feature-card-anim" style={{ opacity: 0 }}>
+        <h2 style={{ textAlign: "center", fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 800, marginBottom: "6px" }}>
           Copilot Intelligence Center
         </h2>
-        <div className="feature-grid">
-          
-          <div className="glass-panel feature-card feature-card-anim" style={{ opacity: 0 }}>
-            <div className="feature-icon-wrapper" style={{ background: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)" }}>
-              <ShieldCheck size={20} color="var(--safest-green)" />
-            </div>
-            <h3 style={{ fontSize: "18px", fontWeight: 800 }}>Multi-Factor Safety Scoring</h3>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
-              Evaluates route profiles on safety metrics. Compares and ranks directions so you can choose paths with lower hazard risk and clearer flows.
-            </p>
+        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "14px", marginBottom: "34px", maxWidth: "550px", margin: "0 auto 34px auto" }}>
+          Explore RoadSense's core modules driving our AI-guided navigation and route hazard analyzer.
+        </p>
+
+        <div className="intel-container">
+          {/* Left Side: Interactive Selectors */}
+          <div className="intel-selector-list">
+            {featuresData.map((feature, idx) => {
+              const isActive = activeFeature === idx;
+              return (
+                <button
+                  key={idx}
+                  className={`intel-selector-btn ${isActive ? "active" : ""}`}
+                  style={{
+                    ["--active-accent-color" as any]: feature.color,
+                    ["--active-border-color" as any]: feature.borderColor,
+                    ["--active-accent-bg" as any]: feature.accentBg
+                  }}
+                  onClick={() => {
+                    setActiveFeature(idx);
+                    setAutoPlay(false);
+                  }}
+                >
+                  <div className="intel-selector-header">
+                    <div className="intel-selector-icon-wrapper">
+                      {feature.icon}
+                    </div>
+                    <span className="intel-selector-title">{feature.title}</span>
+                  </div>
+                  <p className="intel-selector-desc">{feature.description}</p>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="glass-panel feature-card feature-card-anim" style={{ opacity: 0 }}>
-            <div className="feature-icon-wrapper" style={{ background: "rgba(6, 182, 212, 0.08)", border: "1px solid rgba(6, 182, 212, 0.15)" }}>
-              <Map size={20} color="var(--primary-cyan)" />
+          {/* Right Side: Interactive High-Tech Diagnostic Panel */}
+          <div 
+            className="intel-diagnostics-monitor"
+            style={{
+              ["--active-accent-color" as any]: featuresData[activeFeature].color
+            }}
+          >
+            <div className="intel-monitor-header">
+              <span style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)" }}>
+                <span className="intel-monitor-dot"></span>
+                SYSTEM MODULE DIAGNOSTIC: {featuresData[activeFeature].tag}
+              </span>
+              <span style={{ fontSize: "10px", color: featuresData[activeFeature].color, fontWeight: "bold" }}>
+                {featuresData[activeFeature].details.score}
+              </span>
             </div>
-            <h3 style={{ fontSize: "18px", fontWeight: 800 }}>WebGL Map Preview</h3>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
-              Visualizes route geometry using hardware-accelerated MapLibre GL. Overlay multiple directions, inspect zoom limits, and trigger path switches.
-            </p>
-          </div>
 
-          <div className="glass-panel feature-card feature-card-anim" style={{ opacity: 0 }}>
-            <div className="feature-icon-wrapper" style={{ background: "rgba(168, 85, 247, 0.08)", border: "1px solid rgba(168, 85, 247, 0.15)" }}>
-              <CloudRain size={20} color="var(--eco-purple)" />
+            {/* Diagnostic Logs */}
+            <div className="intel-monitor-content">
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "12px", marginBottom: "6px" }}>
+                {featuresData[activeFeature].logs.map((log, lIdx) => (
+                  <div key={lIdx} style={{ display: "flex", gap: "8px" }}>
+                    <span style={{ color: "var(--text-muted)", width: "65px", flexShrink: 0 }}>
+                      [{(15 + lIdx).toString().padStart(2, "0")}:32:{(20 + lIdx * 7).toString().padStart(2, "0")}]
+                    </span>
+                    <span style={{ 
+                      color: log.includes("[WARN]") ? "var(--warn-yellow)" : log.includes("[RECOMMEND]") || log.includes("[SUCCESS]") || log.includes("[AI]") ? "#ffffff" : featuresData[activeFeature].color 
+                    }}>
+                      {log}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Dynamic stats breakdown */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "auto" }}>
+                <div style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.05em", color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: "2px" }}>
+                  Diagnostic Metrics Breakdown
+                </div>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                  {featuresData[activeFeature].details.metrics.map((metric, mIdx) => (
+                    <div 
+                      key={mIdx}
+                      style={{ 
+                        background: "rgba(255, 255, 255, 0.02)", 
+                        border: "1px solid rgba(255, 255, 255, 0.05)", 
+                        borderRadius: "8px", 
+                        padding: "10px", 
+                        display: "flex", 
+                        flexDirection: "column", 
+                        gap: "4px" 
+                      }}
+                    >
+                      <span style={{ fontSize: "9px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {metric.name}
+                      </span>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "2px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 800, color: "#ffffff" }}>
+                          {metric.val}%
+                        </span>
+                        <div style={{ width: "24px", height: "4px", background: "rgba(255, 255, 255, 0.08)", borderRadius: "2px", overflow: "hidden" }}>
+                          <div style={{ width: `${metric.val}%`, height: "100%", background: featuresData[activeFeature].color }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <h3 style={{ fontSize: "18px", fontWeight: 800 }}>Weather Intelligence</h3>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
-              Integrates forecasts from Open-Meteo. Computes wind speeds, visibility scales, and rain probability thresholds to score real-time road conditions.
-            </p>
           </div>
+        </div>
+      </section>
 
-          <div className="glass-panel feature-card feature-card-anim" style={{ opacity: 0 }}>
-            <div className="feature-icon-wrapper" style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.15)" }}>
-              <Bot size={20} color="var(--warn-yellow)" />
-            </div>
-            <h3 style={{ fontSize: "18px", fontWeight: 800 }}>Generative AI Copilot</h3>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
-              Chat directly with our Gemini-powered co-pilot. Solicits instant guidelines on fuel mileage, optimal departure schedules, and local landmark nodes.
-            </p>
+      {/* Reviews Marquee Section */}
+      <section className="marquee-container">
+        <h2 style={{ textAlign: "center", fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 800, marginBottom: "6px" }}>
+          Trusted by Drivers Everywhere
+        </h2>
+        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "14px", marginBottom: "12px", maxWidth: "500px" }}>
+          See how our AI-guided navigation saves time, fuel, and ensures a safer journey.
+        </p>
+
+        <div className="marquee-wrapper">
+          <div className="marquee-track">
+            {[
+              {
+                name: "Alex Mercer",
+                handle: "@alex_nav",
+                avatar: "AM",
+                avatarBg: "#3b82f6",
+                rating: 5,
+                text: "The safety score routing saved me from a massive waterlogged bypass last week! Absolutely essential web console tool."
+              },
+              {
+                name: "Priya Sharma",
+                handle: "@priya_travels",
+                avatar: "PS",
+                avatarBg: "#10b981",
+                rating: 5,
+                text: "Gemini Copilot scheduling suggestions are spot on. Saved about 4.5 Liters of fuel already on my weekly commute!"
+              },
+              {
+                name: "Rohan Das",
+                handle: "@rohan_rider",
+                avatar: "RD",
+                avatarBg: "#facc15",
+                rating: 5,
+                text: "The WebGL map preview is incredibly smooth. Transitioning alternative route options feels like using professional aerospace dashboards."
+              },
+              {
+                name: "Sarah Jenkins",
+                handle: "@sarah_j",
+                avatar: "SJ",
+                avatarBg: "#8b5cf6",
+                rating: 5,
+                text: "Open-Meteo real-time rain probability and road grip index tracking makes storm driving feel much safer. Five stars!"
+              },
+              {
+                name: "Kabir Mehta",
+                handle: "@kabir_m",
+                avatar: "KM",
+                avatarBg: "#ec4899",
+                rating: 4,
+                text: "Excellent integration of multi-factor hazards check. It's clean, premium, and very fast at recalculating optimal routes."
+              },
+              {
+                name: "Diana Prince",
+                handle: "@diana_cruise",
+                avatar: "DP",
+                avatarBg: "#ef4444",
+                rating: 5,
+                text: "Truly a next-gen trip intelligence system. The conversational guidance checklist prepared me perfectly for the mountain trip."
+              }
+            ].map((review, idx) => (
+              <div key={`rev-1-${idx}`} className="review-card">
+                <div className="review-card-header">
+                  <div className="review-avatar" style={{ backgroundColor: review.avatarBg }}>
+                    {review.avatar}
+                  </div>
+                  <div className="review-user-info">
+                    <span className="review-username">{review.name}</span>
+                    <span className="review-handle">{review.handle}</span>
+                  </div>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: "2px" }}>
+                    {Array.from({ length: review.rating }).map((_, rIdx) => (
+                      <span key={rIdx} style={{ color: "var(--warn-yellow)", fontSize: "12px" }}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="review-text">{review.text}</p>
+              </div>
+            ))}
+            {[
+              {
+                name: "Alex Mercer",
+                handle: "@alex_nav",
+                avatar: "AM",
+                avatarBg: "#3b82f6",
+                rating: 5,
+                text: "The safety score routing saved me from a massive waterlogged bypass last week! Absolutely essential web console tool."
+              },
+              {
+                name: "Priya Sharma",
+                handle: "@priya_travels",
+                avatar: "PS",
+                avatarBg: "#10b981",
+                rating: 5,
+                text: "Gemini Copilot scheduling suggestions are spot on. Saved about 4.5 Liters of fuel already on my weekly commute!"
+              },
+              {
+                name: "Rohan Das",
+                handle: "@rohan_rider",
+                avatar: "RD",
+                avatarBg: "#facc15",
+                rating: 5,
+                text: "The WebGL map preview is incredibly smooth. Transitioning alternative route options feels like using professional aerospace dashboards."
+              },
+              {
+                name: "Sarah Jenkins",
+                handle: "@sarah_j",
+                avatar: "SJ",
+                avatarBg: "#8b5cf6",
+                rating: 5,
+                text: "Open-Meteo real-time rain probability and road grip index tracking makes storm driving feel much safer. Five stars!"
+              },
+              {
+                name: "Kabir Mehta",
+                handle: "@kabir_m",
+                avatar: "KM",
+                avatarBg: "#ec4899",
+                rating: 4,
+                text: "Excellent integration of multi-factor hazards check. It's clean, premium, and very fast at recalculating optimal routes."
+              },
+              {
+                name: "Diana Prince",
+                handle: "@diana_cruise",
+                avatar: "DP",
+                avatarBg: "#ef4444",
+                rating: 5,
+                text: "Truly a next-gen trip intelligence system. The conversational guidance checklist prepared me perfectly for the mountain trip."
+              }
+            ].map((review, idx) => (
+              <div key={`rev-2-${idx}`} className="review-card">
+                <div className="review-card-header">
+                  <div className="review-avatar" style={{ backgroundColor: review.avatarBg }}>
+                    {review.avatar}
+                  </div>
+                  <div className="review-user-info">
+                    <span className="review-username">{review.name}</span>
+                    <span className="review-handle">{review.handle}</span>
+                  </div>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: "2px" }}>
+                    {Array.from({ length: review.rating }).map((_, rIdx) => (
+                      <span key={rIdx} style={{ color: "var(--warn-yellow)", fontSize: "12px" }}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="review-text">{review.text}</p>
+              </div>
+            ))}
           </div>
-
         </div>
       </section>
     </div>
