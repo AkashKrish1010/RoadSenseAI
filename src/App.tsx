@@ -534,7 +534,7 @@ function HomeView() {
 
           <div className="glass-panel flow-card-anim" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "26px", opacity: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)", display: "flex", alignItems: "center", justify_content: "center" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Activity size={16} color="var(--safest-green)" style={{ margin: "auto" }} />
               </div>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--safest-green)" }}>STAGE 02</span>
@@ -547,7 +547,7 @@ function HomeView() {
 
           <div className="glass-panel flow-card-anim" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "26px", opacity: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.15)", display: "flex", alignItems: "center", justify_content: "center" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Bot size={16} color="var(--warn-yellow)" style={{ margin: "auto" }} />
               </div>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--warn-yellow)" }}>STAGE 03</span>
