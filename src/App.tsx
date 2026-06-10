@@ -521,7 +521,7 @@ function HomeView() {
           
           <div className="glass-panel flow-card-anim" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "26px", opacity: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(6, 182, 212, 0.08)", border: "1px solid rgba(6, 182, 212, 0.15)", display: "flex", alignItems: "center", justify_content: "center" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(6, 182, 212, 0.08)", border: "1px solid rgba(6, 182, 212, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Layers size={16} color="var(--primary-cyan)" style={{ margin: "auto" }} />
               </div>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--primary-cyan)" }}>STAGE 01</span>
